@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Uploading</title>
+</head>
+
+<body>
+    <div>
+        <%= email %>
+        <table>
+            <tr>
+                <td>Name</td>
+                <td>Category</td>
+                <td>Price</td>
+                <td>Availabel Unit</td>
+                <td>Image</td>
+                <td>link</td>
+            </tr>
+            <% items.forEach(function(item, index) { %>
+                <tr>
+                    <td>
+                        <%=item.name%>
+                    </td>
+                    <td>
+                        <%=item.category.name%>
+                    </td>
+                    <td>
+                        <%=item.costPrice%>
+                    </td>
+                    <td>
+                        <%=item.availableUnit%>
+                    </td>
+                    <% (item.images).forEach(function(image) { if (image.isDisplayImage) {%>
+                        <td><img src="<%=image.img%>" width=100% height=100%></img></td>
+                        <% } else {}}) %>
+                    <td>items/view/<%=encItemsId[index]%></td>
+                </tr>
+                <% }) %>
+        </table>
+    </div>
+</body>
+
+</html>

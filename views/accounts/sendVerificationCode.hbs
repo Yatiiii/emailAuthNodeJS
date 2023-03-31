@@ -1,0 +1,20 @@
+<div class="accounts_bg">
+  <div class="container">
+    <div class="error">
+      {{error}}
+    </div>
+    <form action="/accounts/sendVerificationCode" method="post">
+      <div class="title">Email Verification</div>
+      <div class="input-box">
+        <input
+          type="text"
+          required="true"
+          name="email"
+          placeholder="Enter Your Email"
+        />
+        <div class="underline"></div>
+      </div>
+      <button>Send</button>
+    </form>
+  </div>
+</div>

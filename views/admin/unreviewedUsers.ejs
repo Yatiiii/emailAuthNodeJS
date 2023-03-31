@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unreviewed Users</title>
+</head>
+
+<body>
+    <div>
+        <table>
+            <tr>
+                <td>Name</td>
+                <td>Email</td>
+                <td>Phone</td>
+                <td>createdOn</td>
+                <td>Address</td>
+                <td>City</td>
+                <td>State</td>
+                <td>Image</td>
+                <td>Certificate</td>
+                <td>link</td>
+            </tr>
+            <% users.forEach(function(user, index) { %>
+                <tr>
+                    <td>
+                        <%=user.fullName%>
+                    </td>
+                    <td>
+                        <%=user.email%>
+                    </td>
+                    <td>
+                        <%=user.phone%>
+                    </td>
+                    <td>
+                        <%=user.createdOn%>
+                    </td>
+                    <td>
+                        <%=user.address.line1 %>
+                    </td>
+                    <td>
+                        <%=user.address.city%>
+                    </td>
+                    <td>
+                        <%=user.address.state%>
+                    </td>
+                    <td><img src="<%=user.image.img%>" width=100% height=100%></img></td> 
+                    <td><embed src="<%=user.certificate.certificate%>"width="100%" height="100%" /></td>
+                    <td>users/view/<%=encUsersEmail[index]%>
+                    </td>
+                </tr>
+                <% }) %>
+        </table>
+    </div>
+</body>
+
+</html>

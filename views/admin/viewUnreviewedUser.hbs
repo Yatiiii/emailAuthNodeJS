@@ -1,0 +1,73 @@
+<div class="container" style="max-width: 95%; height:auto">
+    <div class="error">
+        {{error}}
+    </div>
+        <div class="title">Profile</div>
+        <div class="input-box">
+            <input type="text" name="name" placeholder="Name" value = {{user.fullName}} disabled = "true" required />
+            <div class="underline"></div>
+        </div>
+        Name
+        <div class="input-box">
+            <input type="text" name="email" placeholder="Email" value={{user.email}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        Email
+        <div class="input-box">
+            <input type="text" name="phone" placeholder="Phone" value={{user.phone}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        Phone
+        <h2>Address</h2>
+        <div class="input-box">
+            <input type="text" name="addressLine1" placeholder="Line 1" value={{user.address.line1}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+            line1
+        <div class="input-box">
+            <input type="text" name="addressLine2" placeholder="Line 2" value={{user.address.line2}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        line2
+        <div class="input-box">
+            <input type="text" name="addressPinCode" placeholder="PIN Code" value={{user.address.PIN}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        PIN Code
+        <div class="input-box">
+            <input type="text" name="addressCity" placeholder="City" value={{user.address.city}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        City
+        <div class="input-box">
+            <input type="text" name="addressState" placeholder="State" value={{user.address.state}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        State
+        <div class="input-box">
+            <input type="text" name="addressCountry" placeholder="Country" value={{user.address.country}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        Country
+        <div>
+            Image
+            <img src={{user.image.img}} width=750px height=750px></img>
+        </div>
+        <div>
+            Certificate
+            <embed src={{user.certificate.certificate}} width=100% height=750px />
+        </div>
+    <form action="/admin/user/view/{{cipherTextEmail}}/approve" method="post" enctype="multipart/form-data">
+        <button class="primary" style="background-color: rgba(0, 247, 0, 0.747);">Approve</button>
+    </form>
+    <form action="/admin/user/view/{{cipherTextEmail}}/reject" method="post">
+    <div class="input-box">
+        <input type="text" name="rejectionReason" placeholder="Reason for rejecting"
+            required />
+        <div class="underline"></div>
+    </div>
+    <button class = "primary" style="background-color: red;">Reject</button>
+    </form>
+    <a href="/users/{{cipherTextEmail}}" class="button">Cancel</a>
+    {{! </button> }}
+</div>

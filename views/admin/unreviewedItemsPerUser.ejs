@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unreviewed Users</title>
+</head>
+
+<body>
+    <div>
+        <table>
+            <tr>
+                <td>Name</td>
+                <td>Email</td>
+                <td>Unapproved_Items</td>
+                <td>link</td>
+            </tr>
+            <% users.forEach(function(user, index) { %>
+                <tr>
+                    <td>
+                        <%=user.seller.fullName%>
+                    </td>
+                    <td>
+                        <%=user.seller.email%>
+                    </td>
+                    <td>
+                        <%=user.unapprovedItemCount%>
+                    </td>
+                    <td>admin/unreviewedItemsOfUser/<%=encUsersEmail[index]%>
+                    </td>
+                </tr>
+                <% }) %>
+        </table>
+    </div>
+</body>
+
+</html>

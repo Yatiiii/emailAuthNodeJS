@@ -1,0 +1,76 @@
+<div class="container" style="max-width: 95%;">
+    <div class="error">
+        {{error}}
+    </div>
+        <div class="title">Product</div>
+        <div class="input-box">
+            <input type="text" value={{item.name}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+            <h3>Category</h3>
+        <div class="input-box">
+            <input type="text" value = {{item.category.name}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        <div class="input-box">
+            <input type="number" value={{item.costPrice}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        costPrice
+        <div class="input-box">
+            <input type="number" value={{item.discount}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        discount
+        <div class="input-box">
+            <input type="text" value={{item.description}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        description
+        {{#each item.images}}
+        <div>
+            <img src = "{{this.img}}" height=500px width=500px>
+        </div>
+        {{/each}}
+        <div class="input-box">
+            <input type="number" value={{item.availableUnit}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        availableUnit
+        <h3>Seller</h3>
+        <div class="input-box">
+            <input type="text" value={{item.seller.fullName}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        fullName
+        <div class="input-box">
+            <input type="text" value={{item.seller.email}} disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        email
+    <form action="/admin/items/view/{{cipherTextItemId}}/approve" method="post">
+        <div class="input-box">
+            Unit
+            <select name="unitId" id="unitId">
+                {{#each units}}
+                <option value="{{this._id}}">{{this.value}} Kg</option>
+                {{/each}}
+            </select>
+            <div class="underline"></div>
+        </div>
+        <div class="input-box">
+            <input type="number" step="any" min="0" max="100" name="profitMargin" placeholder="Profit Margin" required />
+            <div class="underline"></div>
+        </div>
+        <button class="primary" style="background-color: rgba(0, 247, 0, 0.747);">Approve</button>
+    </form>
+    <form action="/admin/items/view/{{cipherTextItemId}}/reject" method="post">
+        <div class="input-box">
+            <input type="text" name="rejectionReason" placeholder="Reason for rejecting" required />
+            <div class="underline"></div>
+        </div>
+        <button class="primary" style="background-color: red;">Reject</button>
+    </form>
+    <a href="/admin/unreviewedItemsOfUser/{{userCipherTextEmail}}" class="button">Cancel</a>
+    {{! </button> }}
+</div>

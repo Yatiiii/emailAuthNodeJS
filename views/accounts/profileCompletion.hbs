@@ -1,0 +1,55 @@
+<div class="container" style="max-width: 95%;">
+    <div class="error">
+        {{error}}
+    </div>
+    <form action="/users/profile/completion/{{cipherTextEmail}}" method="post" enctype="multipart/form-data">
+        <div class="title">Profile</div>
+        <div class="input-box">
+            <input type="text" name="name" placeholder="Name" required />
+            <div class="underline"></div>
+        </div>
+        <div class="input-box">
+            <input type="text" name="email" placeholder="Email" value={{email}}  disabled="true" required />
+            <div class="underline"></div>
+        </div>
+        <h2>Address</h2>
+        <div class="input-box">
+            <input type="text" name="addressLine1" placeholder="Line 1" required />
+            <div class="underline"></div>
+        </div>
+        <div class="input-box">
+            <input type="text" name="addressLine2" placeholder="Line 2" required />
+            <div class="underline"></div>
+        </div>
+        <div class="input-box">
+            <input type="text" name="addressPinCode" placeholder="PIN Code" required />
+            <div class="underline"></div>
+        </div>
+        <div class="input-box">
+            <input type="text" name="addressCity" placeholder="City" required />
+            <div class="underline"></div>
+        </div>
+        <div class="input-box">
+            <input type="text" name="addressState" placeholder="State" required />
+            <div class="underline"></div>
+        </div>
+        <div class="input-box">
+            <input type="text" name="addressCountry" placeholder="Country" required />
+            <div class="underline"></div>
+        </div>
+        <div class="input-box">
+            Image
+            <input type="file" name="image" placeholder="upload image" required />
+            <div class="underline"></div>
+        </div>
+        <div class="input-box">
+            Certificate
+            <input type="file" name="certificate" placeholder="upload certificate" required />
+            <div class="underline"></div>
+        </div>
+        <button class="primary">Continue </button>
+    </form>
+    {{! <button onclick="window.location.href= '/resumes">Cancel</button> }}
+    <a href="/users/{{cipherTextEmail}}" class="button">Cancel</a>
+    {{! </button> }}
+</div>
