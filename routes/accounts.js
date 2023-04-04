@@ -9,6 +9,12 @@ const accountsServices = require('../services/accountsServices');
 const { encrypt, decrypt } = require('../services/encryptionServices');
 
 router.get('/signIn', (req, res) => {
+    // const cookies = req.cookies;
+    // if (!cookies?.jwt_accessToken) {
+    //     if (!cookies?.jwt_refreshToken) {
+    //         res.render('accounts/signIn', { title: 'Express', email: '' });
+    //     }
+    // }
     res.render('accounts/signIn', { title: 'Express', email: '' });
 });
 
@@ -71,26 +77,25 @@ router.post('/verification', async (req, res) => {
         })
     } catch (error) {
         console.log(error);
-        res.render('accounts/verfication', { error, email });
+        res.render('accounts/signIn', { error, email });
     }
 });
 
 router.post('/signIn', async (req, res) => {
     const { email, password } = req.body;
-    accountsServices.signIn(email, password, function (error, foundUser, refreshToken,accessToken) {
-        if (error) {
-            const msg = "Invalid Username or Password";
-            res.render('accounts/signIn', { error: msg, email: email });
-        }
-        if (foundUser.isEmailVerified) {
-            console.log("data",foundUser, refreshToken);
-            res.cookie('jwt', refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
+    try {
+        const result = await accountsServices.signIn(email, password);
+        // console.log(result);
+        const { user, refreshToken, accessToken } = result;
+        if (user.isEmailVerified) {
+            res.cookie('jwt_refreshToken', refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
+            res.cookie('jwt_accessToken', accessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 });
             // res.header('Authorization', 'Authorization ' + accessToken);
             // req.header('authorization','Authorization ' + accessToken)
             // console.log(res);
             // console.log(res.headersSent);
             // req.userId = foundUser._id;
-            res.redirect(`/users/${accessToken}`);
+            res.redirect(`/users/`);
         }
         else {
             accountsServices.sendEmailVerification(email, function (error) {
@@ -101,7 +106,10 @@ router.post('/signIn', async (req, res) => {
                 }
             });
         }
-    });
+    } catch (err) {
+        res.render('error');
+        console.log(err);
+    }
 });
 
 

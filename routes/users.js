@@ -33,7 +33,7 @@ router.get('/certificate/:key', (req, res) => {
     readStream.pipe(res)
 })
 
-router.get('/:accessToken', verifyJWT, function (req, res, next) {
+router.get('/', verifyJWT, function (req, res, next) {
   const { userId } = req;
   accountsServices.getUserById(userId, (err, user) => {
     if (err) {

@@ -1,13 +1,7 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
 const bcrypt = require('bcrypt');
 const sgMail = require('@sendgrid/mail')
 const dotenv = require('dotenv');
 require('dotenv').config();
-
-
-const uri = process.env.MONGODB_URI;
-const client = new MongoClient(uri);
-const database = client.db("LetUsFarm");
 
 const userImageS3 = require('../services/userImageS3'); 
 const userCertificateS3 = require('../services/userCertificateS3');
@@ -15,8 +9,6 @@ const userCertificateS3 = require('../services/userCertificateS3');
 const fs = require('fs');
 const util = require('util');
 const unlinkFile = util.promisify(fs.unlink);
-
-const callback = require('callback');
 
 const { encrypt, decrypt } = require('../services/encryptionServices');
 
