@@ -1,0 +1,39 @@
+<div class="container" style="max-width: 95%;">
+  <div class="error">
+    {{error}}
+  </div>
+  <form
+    action="/users/publish"
+    method="post"
+    enctype="multipart/form-data"
+  >
+    <div class="title">Thesis Review</div>
+    <div class="input-box">
+      <input type="email" name="sEmail" placeholder="Scholar email" required />
+      <div class="underline"></div>
+    </div>
+    <div id="txtArea" style="border-bottom: 2px solid #ccc;">
+      <textarea
+        id="txtArea"
+        rows="3"
+        cols="50"
+        style="font-size:16px;font: 16px 'Lucida Grande', Helvetica, Arial, sans-serif; width:100%; height:auto;"
+        name="description"
+        placeholder="Description"
+        style="color: #767676;"
+        required
+      ></textarea>
+
+      <div class="underline"></div>
+    </div>
+    <div class="input-box">
+      Thesis
+      <input type="file" name="thesis" accept=".pdf, .doc, .docx" placeholder="Upload Thesis" required />
+      <div class="underline"></div>
+    </div>
+    <button class="primary">Create </button>
+  </form>
+  {{! <button onclick="window.location.href= '/resumes">Cancel</button> }}
+  <a href="/users/" class="button">Cancel</a>
+  {{! </button> }}
+</div>

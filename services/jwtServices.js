@@ -24,7 +24,7 @@ async function getUserByRefreshToken(refreshToken) {
             throw new Error("RefreshToken cannot be null");
         }
 
-        fetch("https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/getUserByRefreshToken?secret=vedant&refreshToken=" + refreshToken, {
+        let user = await fetch("https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/getUserByRefreshToken?secret=vedant&refreshToken=" + refreshToken, {
             method: "GET",
         }).then(function (response) {
             return response.json();
@@ -36,8 +36,9 @@ async function getUserByRefreshToken(refreshToken) {
             console.log('Request failed', error);
             throw new Error(error);
         });
+        return user;
     } catch (err) {
-        throw new Error(err);
+        return null;
     }
 }
 
@@ -63,15 +64,13 @@ async function refreshAccessTokenByRefreshToken(refreshToken) {
     try {
         const findUser = await getUserByRefreshToken(refreshToken);
         if (findUser.status == "Fail") throw new Error(findUser.error);
-
         const user = findUser.result;
-        const newAccesSToken = createAccessToken(user);
+        const newAccesToken = createAccessToken(user);
+        if (!newAccesToken) throw new Error("Unable to create Access Token");
 
-        if (!newAccesSToken) throw new Error("Unable to create Access Token");
-
-        return newAccesSToken;
+        return newAccesToken;
     } catch (err) {
-        throw new Error(err);
+        return null;
     }
 }
 

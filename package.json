@@ -7,6 +7,7 @@
     "startDev": "node ./node_modules/nodemon/bin/nodemon.js ./bin/www"
   },
   "dependencies": {
+    "aws-sdk": "^2.1358.0",
     "bcrypt": "^5.1.0",
     "cookie-parser": "~1.4.4",
     "cookieparser": "^0.1.0",
@@ -18,6 +19,7 @@
     "jade": "~1.11.0",
     "jsonwebtoken": "^9.0.0",
     "morgan": "~1.9.1",
+    "multer": "^1.4.5-lts.1",
     "sib-api-v3-sdk": "^8.5.0"
   },
   "devDependencies": {

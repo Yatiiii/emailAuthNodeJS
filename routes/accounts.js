@@ -6,24 +6,13 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 
 const accountsServices = require('../services/accountsServices');
+const jwtServices = require('../services/jwtServices');
 const { encrypt, decrypt } = require('../services/encryptionServices');
+const { NetworkFirewall } = require('aws-sdk');
 
-router.get('/signIn', (req, res) => {
-    // const cookies = req.cookies;
-    // if (!cookies?.jwt_accessToken) {
-    //     if (!cookies?.jwt_refreshToken) {
-    //         res.render('accounts/signIn', { title: 'Express', email: '' });
-    //     }
-    // }
-    res.render('accounts/signIn', { title: 'Express', email: '' });
-});
-
+//-----------------------REGISTER----------------------------------------
 router.get('/register', (req, res) => {
     res.render('accounts/register');
-});
-
-router.get('/verification', (req, res) => {
-    res.render('accounts/verification');
 });
 
 router.post('/register', async (req, res) => {
@@ -37,56 +26,86 @@ router.post('/register', async (req, res) => {
         // atleast one special char
         // atleast of length 8
         if (strongPasswordReq.test(password)) {
-            accountsServices.createUser(fullName, email, phone, password, function (error) {
-                if (error) {
-                    res.render('accounts/register', { error: error, fullName, email, phone });
-                } else {
-                        accountsServices.sendEmailVerification(email, function (error2) {
-                            if (error2) {
-                                res.send(error2);
-                            } else {
-                                res.redirect(`/accounts/${email}/verification`);
-                            }
-                        });
-                    }
-            });
+            let result = await accountsServices.createUser(fullName, email, phone, password);
+            if (result.status == "Fail") {
+                res.status(200).send("Error: " + result.error);
+            }
+            res.redirect('/accounts/sendVerification');
         } else {
             res.render('accounts/register', { error: 'Enter a valid Password', fullName, email, phone });
         }
     }
 });
 
+//-----------------------VERIFICATION---------------------------------------
+router.get('/sendVerification', (req, res) => {
+    res.render('accounts/sendVerificationCode');
+})
+
+router.post('/sendVerification', (req, res) => {
+    let { email } = req.body;
+    let sendVerificationResult = accountsServices.sendEmailVerification(email);
+    if (sendVerificationResult.status == "Fail") res.render('accounts/sendVerificationCode', { error: sendVerificationResult.error });
+    else res.redirect('/accounts/verification')
+})
+
+router.get('/verification', (req, res) => {
+    res.render('accounts/verification');
+});
 
 router.post('/verification', async (req, res) => {
     const { email, code } = req.body;
     try {
-        await accountsServices.checkVerification(email, code, function (error, status) {
-            if (error) {
-                console.log(error);
-                accountsServices.sendEmailVerification(email, function (error2) {
-                    if (error2) {
-                        res.render('accounts/verification', { error:error2, email });
-                    } else {
-                        res.render('accounts/verification', { error:error+'. Please enter the new code sent to your email.', email:email });
-                    }
-                });
-            } else if (status) {
-                const ciphertextEmail = encrypt(email);;
-                res.redirect(`/accounts/signIn`);
-            }
-        })
+        let verificationResult = await accountsServices.checkVerification(email, code);
+        if (verificationResult.status == "Fail") {
+            res.render('accounts/verification', { error:verificationResult.error, email:email });
+        }
+        else {
+            res.redirect('/accounts/signIn');
+        }
     } catch (error) {
         console.log(error);
-        res.render('accounts/signIn', { error, email });
+        res.render('accounts/verification', { error, email });
     }
+});
+
+
+//------------------------------SIGN IN------------------------------------------
+router.get('/signIn',async (req, res) => {
+    const cookies = req.cookies;
+    if (!cookies?.jwt_accessToken) {
+        if (!cookies?.jwt_refreshToken) {
+            res.render('accounts/signIn', { title: 'Express', email: '' });
+        }
+        else {
+            let refreshToken = cookies.jwt_refreshToken;
+            let newAccessToken = await jwtServices.refreshAccessTokenByRefreshToken(refreshToken);
+            if (newAccessToken) {
+                res.cookie('jwt_accessToken', newAccessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 });
+                res.redirect('/users/');
+            }
+            else {
+                res.render('accounts/signIn', { title: 'Express', email: '' });
+            }
+        }
+    } else {
+        res.redirect('/users/');
+    }
+    // res.render('accounts/signIn', { title: 'Express', email: '' });
 });
 
 router.post('/signIn', async (req, res) => {
     const { email, password } = req.body;
     try {
         const result = await accountsServices.signIn(email, password);
+        if (result.status == "Fail") {
+            res.status(200).send("Error: "+result.error);
+            return;
+        }
+        if (result.status !== "Success") throw new Error("Unknown error occurred");
         // console.log(result);
         const { user, refreshToken, accessToken } = result;
+        console.log("signing in: ", user, refreshToken, accessToken);
         if (user.isEmailVerified) {
             res.cookie('jwt_refreshToken', refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
             res.cookie('jwt_accessToken', accessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 });
@@ -98,17 +117,12 @@ router.post('/signIn', async (req, res) => {
             res.redirect(`/users/`);
         }
         else {
-            accountsServices.sendEmailVerification(email, function (error) {
-                if (error) {
-                    res.render('accounts/signIn', { error, email });
-                } else {
-                    res.redirect(`/accounts/verification`);
-                }
-            });
+            let result = accountsServices.sendEmailVerification(email);
+            if (result.status == "Success") res.redirect('/accounts/verification');
+            else res.redirect('/accounts/signIn');
         }
     } catch (err) {
-        res.render('error');
-        console.log(err);
+        res.render('error:'+err);
     }
 });
 
