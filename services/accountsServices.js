@@ -3,6 +3,8 @@ const Sib = require("sib-api-v3-sdk");
 require("dotenv").config();
 
 const jwtServices = require("../services/jwtServices");
+const mailServices = require("../services/mailServices");
+const mailDataServices = require("../services/mailDataServices");
 
 const fs = require("fs");
 const util = require("util");
@@ -128,7 +130,8 @@ function sendEmailVerification(email) {
         userEmail: email,
         code: code,
     };
-    sendMail(email, code);
+    let content = mailDataServices.verificationMailContent(code);
+    mailServices.sendMail(email, content);
     console.log(email, code);
     fetch(
         "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createVerification?secret=vedant",
@@ -152,37 +155,6 @@ function sendEmailVerification(email) {
             console.log("Request failed", error);
             return { status: "Fail", error: error };
         });
-}
-
-function sendMail(email, code) {
-    const client = Sib.ApiClient.instance;
-    const apiKey = client.authentications["api-key"];
-    apiKey.apiKey = process.env.SENDINBLUE_API_KEY;
-
-    const tranEmailApi = new Sib.TransactionalEmailsApi();
-    const sender = {
-        email: "vedantjain1008@gmail.com",
-        name: "Vedant",
-    };
-    const receivers = [
-        {
-            email: email,
-        },
-    ];
-
-    tranEmailApi
-        .sendTransacEmail({
-            sender,
-            to: receivers,
-            subject: "Verification Code",
-            htmlContent: `
-        Your one time verification code is -
-            <h1>${code}</h1>
-        This is a one time verification code.
-        Thank you for registering at LetUsFarm`,
-        })
-        .then(console.log)
-        .catch(console.log);
 }
 
 async function checkVerification(email, code) {

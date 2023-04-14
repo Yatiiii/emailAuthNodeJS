@@ -5,6 +5,8 @@ const jwt = require("jsonwebtoken");
 
 const accountsServices = require("../services/accountsServices");
 const s3Services = require('../services/s3');
+const mailServices = require("../services/mailServices");
+const mailDataServices = require("../services/mailDataServices");
 
 const fs = require("fs");
 const util = require("util");
@@ -65,6 +67,10 @@ async function uploadThesis(mentorId, scholarEmail, description, thesis) {
         console.log('Request failed', error);
         return callback(error);
     });
+    
+    // Sending Mail
+    let content = mailDataServices.thesisSubmissionContent(mentor.name, description);
+    mailServices.sendMail(scholar.email, content);
     return result;
 }
 
