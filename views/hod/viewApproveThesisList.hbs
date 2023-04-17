@@ -1,0 +1,61 @@
+<div
+    style="width: 100%;display: grid;grid-template-columns: repeat(2, 1fr);grid-template-rows: 1fr;grid-column-gap: 0px;grid-row-gap: 0px;">
+    <div style="display:flex;flex-direction:row; align-items:center;margin:1rem 2rem; font-size:1.6rem">
+        {{name}}</div>
+    <div style="display:flex;flex-direction:row-reverse;align-items:center">
+        <a href="/users/publish/" class="primary-button" style="width:auto;margin: 1rem 2rem">Publish</a>
+    </div>
+</div>
+<div class="showGrid"
+    style="width: 100%;display: grid;grid-template-columns: repeat(5, 1fr);grid-template-rows: 1fr;grid-column-gap: 0px;grid-row-gap: 0px;">
+    {{! <div class="container showGrid" style="padding:0rem 0px; max-width:100%;margin:1rem 0px"> }}
+        <div class="center"
+            style="margin: 20px 0rem 20px 2rem; padding-bottom:1rem; justify-content:left; border-bottom:2px solid black">
+            Name</div>
+        <div class="center"
+            style="margin: 20px 0px 20px 0px ;padding-bottom:1rem; justify-content:center;border-bottom:2px solid black">
+            Mentor</div>
+        <div class="center"
+            style="margin: 20px 0rem 20px 0px;padding-bottom:1rem; justify-content:center;border-bottom:2px solid black">
+            Scholar</div>
+        <div class="center"
+            style="margin: 20px 0px 20px 0px ;padding-bottom:1rem; justify-content:center;border-bottom:2px solid black">
+            Submitted On</div>
+        <div class="center"
+            style="margin: 20px 0px 20px 0px ;padding-bottom:1rem; justify-content:center;border-bottom:2px solid black">
+            Action</div>
+        {{!
+    </div> }}
+    {{#each thesisList}}
+    <div class="center"
+        style="margin: 20px 0rem 20px 2rem; padding-bottom:1rem; justify-content:left;border-bottom:2px solid rgb(204, 204, 204)">
+        {{this.name}}</div>
+    <div class="center"
+        style="display = flex; margin: 20px 0px 20px 0px ;padding-bottom:1rem; flex-flow:column ;align-items:center ;border-bottom:2px solid rgb(204, 204, 204)">
+        <div>{{this.mentorName}}</div>
+        <div>{{this.mentorEmail}}</div>
+    </div>
+    <div class="center"
+        style="display = flex; margin: 20px 0px 20px 0px ;padding-bottom:1rem; flex-flow:column ;align-items:center ;border-bottom:2px solid rgb(204, 204, 204)">
+        <div>{{this.scholarName}}</div>
+        <div>{{this.scholarEmail}}</div>
+    </div>
+    <div class="center"
+        style="margin: 20px 0px 20px 0px ;padding-bottom:1rem; justify-content:center;border-bottom:2px solid rgb(204, 204, 204)">
+        {{this.submittedOn}}
+    </div>
+    <div class="center"
+        style="margin: 20px 0rem 20px 0rem; padding-bottom:1rem; justify-content:left;border-bottom:2px solid rgb(204, 204, 204)">
+        <form action="/users/viewThesis/{{this.thesisId}}" method="get"><button style="width:auto; margin:1rem 2rem">
+                <span style="margin:2rem;">View</span></button>
+        </form>
+        <form action="/users/approveThesis/{{this.thesisId}}" method="post">
+        <input type="text" name="scholarEmail" value="{{this.scholarEmail}}" hidden="true" />
+        <input type="text" name="mentorEmail" value="{{this.mentorEmail}}" hidden="true" />
+        <input type="text" name="thesisName" value="{{this.name}}" hidden="true" />
+        <button class="primary" style="width:auto; margin:1rem 2rem">
+                <span style="margin:2rem;">Approve</span></button>
+        </form>
+    </div>
+    {{/each}}
+</div>

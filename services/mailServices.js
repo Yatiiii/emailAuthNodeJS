@@ -1,6 +1,6 @@
 const Sib = require("sib-api-v3-sdk");
 
-function sendMail(email, htmlContent) {
+function sendMail(email, htmlContent, subject) {
     const client = Sib.ApiClient.instance;
     const apiKey = client.authentications["api-key"];
     apiKey.apiKey = process.env.SENDINBLUE_API_KEY;
@@ -20,7 +20,7 @@ function sendMail(email, htmlContent) {
         .sendTransacEmail({
             sender,
             to: receivers,
-            subject: "Verification Code",
+            subject: subject,
             htmlContent: htmlContent,
         })
         .then(console.log)

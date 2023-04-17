@@ -1,0 +1,47 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{title}}</title>
+    <link rel="stylesheet" href="/stylesheets/users_style.css" />
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+  </head>
+  <body>
+    <div class="navbar">
+      <div class="dropdown" style="min-width:150px">
+        <button class="dropbtn" style="float:inline-end;">{{name}}
+          <i class="fa fa-caret-down"></i>
+        </button>
+        <div class="dropdown-content">
+          <a href="/accounts/logOut">Sign-out</a>
+        </div>
+      </div>
+      <span class="webName" style="float:left;">Thesis Approval</span>
+    </div>
+
+    <div class="content">
+      <!-- Side navigation -->
+      <div class="sidenav">
+        <a href="/users/">Home</a>
+        <a href="/users/publish/">Publish Thesis</a>
+        <a href="/users/viewThesisList/">View Thesis List</a>
+        <a href="/users/viewApproveThesisList/">Approve Thesis</a>
+        <a href="/users/viewThesis/">View Example Thesis</a>
+        <a href="/users/profileCompletion/">Profile Completion</a>
+        {{!-- <a href="/users/profile">Settings</a> --}}
+      </div>
+
+      <div class="main-content">
+
+        {{{body}}}
+      </div>
+    </div>
+
+    {{! Footer }}
+    <footer>
+      <p class="f">Inventory Mangement Inc. © 2022</p>
+    </footer>
+  </body>
+
+</html>

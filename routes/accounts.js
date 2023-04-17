@@ -97,30 +97,32 @@ router.get('/signIn',async (req, res) => {
 router.post('/signIn', async (req, res) => {
     const { email, password } = req.body;
     try {
-        const result = await accountsServices.signIn(email, password);
-        if (result.status == "Fail") {
-            res.status(200).send("Error: "+result.error);
-            return;
-        }
-        if (result.status !== "Success") throw new Error("Unknown error occurred");
-        // console.log(result);
-        const { user, refreshToken, accessToken } = result;
-        console.log("signing in: ", user, refreshToken, accessToken);
-        if (user.isEmailVerified) {
-            res.cookie('jwt_refreshToken', refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
-            res.cookie('jwt_accessToken', accessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 });
-            // res.header('Authorization', 'Authorization ' + accessToken);
-            // req.header('authorization','Authorization ' + accessToken)
-            // console.log(res);
-            // console.log(res.headersSent);
-            // req.userId = foundUser._id;
-            res.redirect(`/users/`);
-        }
-        else {
-            let result = accountsServices.sendEmailVerification(email);
-            if (result.status == "Success") res.redirect('/accounts/verification');
-            else res.redirect('/accounts/signIn');
-        }
+        const result = await accountsServices.signIn(email, password, function (result) {
+            if (result.status == "Fail") {
+                res.status(200).send("Error: "+result.error);
+                return;
+            }
+            if (result.status !== "Success") throw new Error("Unknown error occurred");
+            // console.log(result);
+            const { user, refreshToken, accessToken } = result;
+            console.log("signing in: ", user, refreshToken, accessToken);
+            if (user.isEmailVerified) {
+                res.cookie('jwt_refreshToken', refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
+                res.cookie('jwt_accessToken', accessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 });
+                // res.header('Authorization', 'Authorization ' + accessToken);
+                // req.header('authorization','Authorization ' + accessToken)
+                // console.log(res);
+                // console.log(res.headersSent);
+                // req.userId = foundUser._id;
+                res.redirect(`/users/`);
+            }
+            else {
+                let result = accountsServices.sendEmailVerification(email);
+                if (result.status == "Success") res.redirect('/accounts/verification');
+                else res.redirect('/accounts/signIn');
+            }
+        });
+        
     } catch (err) {
         res.render('error:'+err);
     }

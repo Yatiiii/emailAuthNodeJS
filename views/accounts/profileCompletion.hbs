@@ -2,54 +2,58 @@
     <div class="error">
         {{error}}
     </div>
-    <form action="/users/profile/completion/{{cipherTextEmail}}" method="post" enctype="multipart/form-data">
+    <form action="/users/profileCompletion" method="post">
         <div class="title">Profile</div>
         <div class="input-box">
-            <input type="text" name="name" placeholder="Name" required />
+            <input type="text" name="name" placeholder="{{name}}" value="{{name}}"  readonly="true" required />
             <div class="underline"></div>
         </div>
         <div class="input-box">
-            <input type="text" name="email" placeholder="Email" value={{email}}  disabled="true" required />
+            <input type="text" name="email" placeholder="{{email}}" value="{{email}}"  readonly="true" required />
             <div class="underline"></div>
         </div>
-        <h2>Address</h2>
+        <h2>Professional</h2>
         <div class="input-box">
-            <input type="text" name="addressLine1" placeholder="Line 1" required />
-            <div class="underline"></div>
-        </div>
-        <div class="input-box">
-            <input type="text" name="addressLine2" placeholder="Line 2" required />
+            <input type="text" name="institute" placeholder="IIITDM Jabalpur" value="IIITDM Jabalpur" required />
             <div class="underline"></div>
         </div>
         <div class="input-box">
-            <input type="text" name="addressPinCode" placeholder="PIN Code" required />
+            <select name="department" id="department">
+            {{#each departments}}
+                <option value="{{this.name}}">{{this.name}}</option>
+            {{/each}}
+            </select>
             <div class="underline"></div>
         </div>
         <div class="input-box">
-            <input type="text" name="addressCity" placeholder="City" required />
+            <select name="role" id="role">
+            {{#each roles}}
+                <option value="{{this.name}}">{{this.name}}</option>
+            {{/each}}
+            </select>
+            <div class="underline"></div>
+        </div>
+        <hr>
+        <h2>Scholar</h2>
+        (*If a student)
+        <div class="input-box">
+            <input type="text" name="rollNo" placeholder="Roll No." value=""/>
             <div class="underline"></div>
         </div>
         <div class="input-box">
-            <input type="text" name="addressState" placeholder="State" required />
+            <input type="date" name="dateOfJoining" placeholder="Date Of Joining" value=""/>
             <div class="underline"></div>
         </div>
+        <hr>
+        <h2>Mentor</h2>
+        (*If a faculty)
         <div class="input-box">
-            <input type="text" name="addressCountry" placeholder="Country" required />
-            <div class="underline"></div>
-        </div>
-        <div class="input-box">
-            Image
-            <input type="file" name="image" placeholder="upload image" required />
-            <div class="underline"></div>
-        </div>
-        <div class="input-box">
-            Certificate
-            <input type="file" name="certificate" placeholder="upload certificate" required />
+            <input type="text" name="pfId" placeholder="PFID"/>
             <div class="underline"></div>
         </div>
         <button class="primary">Continue </button>
     </form>
     {{! <button onclick="window.location.href= '/resumes">Cancel</button> }}
-    <a href="/users/{{cipherTextEmail}}" class="button">Cancel</a>
+    <a href="/users/" class="button">Cancel</a>
     {{! </button> }}
 </div>

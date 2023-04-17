@@ -13,7 +13,12 @@ const verifyJWT = (req, res, next) => {
         (err, decoded) => {
             if (err) return res.redirect('/accounts/signIn');
             req.userId = decoded.userId;
-            console.log(decoded.userId)
+            req.userName = decoded.userName;
+            req.userRole = decoded.userRole;
+            if (!req.userRole) {
+                req.redirect('/users/profileCompletion');
+                return;
+            }
             next();
         }
     );

@@ -12,6 +12,38 @@ const unlinkFile = util.promisify(fs.unlink);
 
 const { encrypt, decrypt } = require('../services/encryptionServices');
 
+async function getDepartments() {
+    let departmentsResult = await fetch("https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/getDepartments?secret=vedant", {
+            method: "GET",
+        }).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            // console.log('Request succeeded with JSON response', data);
+            return data;
+        }).catch(function (error) {
+            console.log('Request failed', error);
+            return callback(error);
+        });
+    return departmentsResult;
+}
+
+async function getRoles() {
+    let rolesResult = await fetch("https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/getRoles?secret=vedant", {
+            method: "GET",
+        }).then(function (response) {
+            return response.json();
+        }).then(function (data) {
+            // console.log('Request succeeded with JSON response', data);
+            return data;
+        }).catch(function (error) {
+            console.log('Request failed', error);
+            return callback(error);
+        });
+    return rolesResult;
+}
+
+
+
 /*-------------------Functions----------------------*/
 function getUnreviewedUsers(callback) {
     fetch("https://ap-south-1.aws.data.mongodb-api.com/app/letusfarm-fuadi/endpoint/listUnreviewedUsers?secret=alwaysShine", {
@@ -119,6 +151,8 @@ function updateItemReviewStatus(itemId, reviewStatus, reviewResponse, unitId, pr
 }
 
 module.exports = {
+    getDepartments,
+    getRoles,
     getUnreviewedUsers,
     getUnreviewedItemsPerUser,
     getUnreviewedItemsOfUserByEmail,

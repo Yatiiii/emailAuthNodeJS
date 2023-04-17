@@ -9,6 +9,7 @@ require('dotenv').config()
 
 const jwt = require('jsonwebtoken');
 
+var accountServices = require('../services/accountsServices');
 const userImageS3 = require('../services/userImageS3');
 const userCertificateS3 = require('../services/userCertificateS3');
 
@@ -42,18 +43,38 @@ async function getUserByRefreshToken(refreshToken) {
     }
 }
 
-function createAccessToken(user) {
+async function createAccessToken(user) {
+    let role = null;
+    if (user.isProfileComplete) {
+        const userProfile = await accountServices.getUserProfileById(user._id);
+        console.log(userProfile);
+        if (userProfile.status == "Fail"); 
+        else role = userProfile.result.role;
+    }
     const accessToken = jwt.sign(
-        { "userId": user._id },
+        {
+            "userId": user._id,
+            "userName": user.name,
+            "userRole": role
+        },
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: '15m' }
     );
     return accessToken;
 }
 
-function createRefreshToken(user) {
+async function createRefreshToken(user) {
+    let role = null;
+    if (user.isProfileComplete) {
+        const userProfile = await accountServices.getUserProfileById(user._id);
+        role = userProfile.result.role;
+    }
     const refreshToken = jwt.sign(
-        { "userId": user._id },
+        {
+            "userId": user._id,
+            "userName": user.name,
+            "userRole": role
+        },
         process.env.REFRESH_TOKEN_SECRET,
         { expiresIn: '1d' }
     );
@@ -76,8 +97,8 @@ async function refreshAccessTokenByRefreshToken(refreshToken) {
 
 async function createTokens(user) {
     try {
-        const newAccessToken = createAccessToken(user);
-        const newRefreshToken = createRefreshToken(user);
+        const newAccessToken = await createAccessToken(user);
+        const newRefreshToken = await createRefreshToken(user);
 
         const userId = user._id;
 

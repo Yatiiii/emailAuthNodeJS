@@ -55,6 +55,28 @@ async function getUserById(id) {
     return user;
 }
 
+async function getUserProfileById(id) {
+    let user = await fetch(
+        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/getUserProfileById?secret=vedant&userId=" +
+        id,
+        {
+            method: "GET",
+        }
+    )
+        .then(function (response) {
+            return response.json();
+        })
+        .then(function (data) {
+            // console.log('Request succeeded with JSON response', data);
+            return data;
+        })
+        .catch(function (error) {
+            console.log("Request failed", error);
+            return { status: "Fail", error: error };
+        });
+    return user;
+}
+
 
 async function createUser(fullName, email, phone, password) {
     try {
@@ -63,50 +85,49 @@ async function createUser(fullName, email, phone, password) {
             if (saltError) {
                 throw new Error(saltError);
             } else {
-                bcrypt.hash(password, salt, function (hashError, hashPass) {
+                bcrypt.hash(password, salt, async function (hashError, hashPass) {
                     if (hashError) {
                         throw new Error(hashError);
                     }
                     hashedPass = hashPass;
+                    const reqBody = {
+                        fullName: fullName,
+                        email: email,
+                        password: hashedPass,
+                        phone: phone,
+                    };
+                    // console.log(reqBody)
+                    await fetch(
+                        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createUser?secret=vedant",
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify(reqBody),
+                        }
+                    )
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (data) {
+                            console.log("Request succeeded with JSON response", data);
+                            if (data.status == "Fail") {
+                                throw new Error(data.error);
+                            } else if (data.status == "Success") {
+                                console.log("User created: ", data.result);
+                            } else {
+                                throw new Error("An unknown error occurred!");
+                            }
+                        })
+                        .catch(function (error) {
+                            console.log("Request failed", error);
+                            throw new Error(error);
+                        });
+
                 });
             }
         });
-
-        const reqBody = {
-            fullName: fullName,
-            email: email,
-            password: hashedPass,
-            phone: phone,
-        };
-        // console.log(reqBody)
-        await fetch(
-            "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createUser?secret=vedant",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(reqBody),
-            }
-        )
-            .then(function (response) {
-                return response.json();
-            })
-            .then(function (data) {
-                console.log("Request succeeded with JSON response", data);
-                if (data.status == "Fail") {
-                    throw new Error(data.error);
-                } else if (data.status == "Success") {
-                    console.log("User created: ", data.result);
-                } else {
-                    throw new Error("An unknown error occurred!");
-                }
-            })
-            .catch(function (error) {
-                console.log("Request failed", error);
-                throw new Error(error);
-            });
-
         return { status: "Success" }
     } catch (err) {
         let result = {
@@ -349,7 +370,7 @@ async function checkVerification(email, code) {
 
 }
 
-async function signIn(email, password) {
+async function signIn(email, password, callback) {
     const errResult = {
         status: "Fail",
         error: null
@@ -369,7 +390,7 @@ async function signIn(email, password) {
 
     //matching password
     let passMatch;
-    bcrypt.compare(password, user.password, function (error, isMatch) {
+    bcrypt.compare(password, user.password,async function (error, isMatch) {
         if (error) {
             errResult.error = error;
             return errResult;
@@ -378,148 +399,192 @@ async function signIn(email, password) {
             return errResult;
         } else {
             passMatch = true;
+            //creating tokens
+            const accessToken = jwtServices.createAccessToken(user);
+            const refreshToken = jwtServices.createRefreshToken(user);
+
+            //Adding refresh Token in database
+            const refreshTokenBody = {
+                userId: user._id,
+                refreshToken: refreshToken,
+            };
+            const updation = await fetch(
+                "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createUserRefreshToken?secret=vedant",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        // 'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: JSON.stringify(refreshTokenBody),
+                }
+            ).then(function (response) {
+                return response.json();
+            })
+                .then(function (data) {
+                    return data;
+                })
+                .catch(function (error) {
+                    console.log("Request failed", error);
+                    errResult.error = error;
+                    return errResult;
+                });
+            if (!updation) {
+                errResult.error = "Unable to add tokens";
+                return errResult;
+            }
+            const result = {
+                status: "Success",
+                user: user,
+                refreshToken: refreshToken,
+                accessToken: accessToken
+            }
+            // console.log("Result: ",result)
+            return callback(result);
         }
     });
+}
 
-    //creating tokens
-    const accessToken = jwtServices.createAccessToken(user);
-    const refreshToken = jwtServices.createRefreshToken(user);
-
-    //Adding refresh Token in database
-    const refreshTokenBody = {
-        userId: user._id,
-        refreshToken: refreshToken,
-    };
-    const updation = await fetch(
-        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createUserRefreshToken?secret=vedant",
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                // 'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: JSON.stringify(refreshTokenBody),
+async function completeUserProfile(userId, name, email, institute, department, role, rollNo, dateOfJoining, pfId) {
+    const userResult = await getUserByEmail(email);
+    let result = {
+        status: "Fail",
+        error: null
+    }
+    if (userResult.status=="Fail") {
+        result.error = userResult.error;
+        return result;
+    }
+    const user = userResult.result;
+    if (userId != user._id||name!==user.name||email!==user.email) {
+        result.error = "Incorrect data";
+        return result;
+    }
+    if (role == "Scholar") {
+        let reqBody = {
+            userId: userId,
+            institute: institute,
+            rollNo: rollNo,
+            department: department,
+            dateOfJoining: dateOfJoining,
         }
-    ).then(function (response) {
-        return response.json();
-    })
-        .then(function (data) {
-            return data;
+        const updation = await fetch(
+            "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createScholarProfile?secret=vedant",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    // 'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: JSON.stringify(reqBody),
+            }
+        ).then(function (response) {
+            return response.json();
         })
-        .catch(function (error) {
-            console.log("Request failed", error);
-            errResult.error = error;
-            return errResult;
-        });
-    if (!updation) {
-        errResult.error = "Unable to add tokens";
-        return errResult;
+            .then(function (data) {
+                return data;
+            })
+            .catch(function (error) {
+                console.log("Request failed", error);
+                result.error = error;
+                return result;
+            });
+        if (updation.status == "Fail") {
+            result.error = updation.error;
+            return result;
+        }
+        else {
+            result.status = "Success";
+            return result;
+        }
     }
-    const result = {
-        status: "Success",
-        user: user,
-        refreshToken: refreshToken,
-        accessToken: accessToken
+    else if (role == "Reviewer") {
+        let reqBody = {
+            userId: userId,
+            institute: institute,
+            department: department,
+            pfId: pfId
+        }
+        const updation = await fetch(
+            "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createReviewerProfile?secret=vedant",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    // 'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: JSON.stringify(reqBody),
+            }
+        ).then(function (response) {
+            return response.json();
+        })
+            .then(function (data) {
+                return data;
+            })
+            .catch(function (error) {
+                console.log("Request failed", error);
+                result.error = error;
+                return result;
+            });
+        if (updation.status == "Fail") {
+            result.error = updation.error;
+            return result;
+        }
+        else {
+            result.status = "Success";
+            return result;
+        }
     }
-    // console.log("Result: ",result)
-    return result;
-    // try {
-    //     const findUser = await fetch(
-    //         "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/getUserByEmail?secret=vedant&userEmail=" +
-    //         email,
-    //         {
-    //             method: "GET",
-    //         }
-    //     ).then(function (response) {
-    //         return response.json();
-    //     })
-    //         .then(function (data) {
-    //             return data;
-    //         })
-    //         .catch(function (error) {
-    //             console.log("Request failed", error);
-    //             throw new Error(error);
-    //         });
-    //     if (findUser.status == "Fail") {
-    //         throw new Error(findUser.error);
-    //     }
-
-    //     // console.log("User Found: ", findUser);
-    //     const user = findUser.result;
-    //     if (!user.isEmailVerified) {
-    //         return { user, _, _ };
-    //     }
-
-    //     //matching password
-    //     let passMatch;
-    //     bcrypt.compare(password, user.password, function (error, isMatch) {
-    //         if (error) {
-    //             throw new Error(error);
-    //         } else if (!isMatch) {
-    //             throw new Error("Wrong Password");
-    //         } else {
-    //             passMatch = true;
-    //         }
-    //     });
-
-    //     //creating tokens
-    //     const accessToken = jwtServices.createAccessToken(user);
-    //     const refreshToken = jwtServices.createRefreshToken(user);
-
-    //     //Adding refresh Token in database
-    //     const refreshTokenBody = {
-    //         userId: user._id,
-    //         refreshToken: refreshToken,
-    //     };
-    //     const updation = await fetch(
-    //         "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createUserRefreshToken?secret=vedant",
-    //         {
-    //             method: "POST",
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //                 // 'Content-Type': 'application/x-www-form-urlencoded',
-    //             },
-    //             body: JSON.stringify(refreshTokenBody),
-    //         }
-    //     ).then(function (response) {
-    //         return response.json();
-    //     })
-    //         .then(function (data) {
-    //             return data;
-    //         })
-    //         .catch(function (error) {
-    //             console.log("Request failed", error);
-    //             throw new Error(error);
-    //         });
-    //     if (!updation) {
-    //         throw new Error("Unable to add tokens");
-    //     }
-    //     const result = {
-    //         status: "Success",
-    //         user: user,
-    //         refreshToken: refreshToken,
-    //         accessToken: accessToken
-    //     }
-    //     // console.log("Result: ",result)
-    //     return result;
-    // } catch (err) {
-    //     console.log(err);
-    //     const result = {
-    //         status: "Fail",
-    //         error: err
-    //     }
-    //     return result;
-    // }
+    else{
+        let reqBody = {
+            userId: userId,
+            role: role,
+            institute: institute,
+            department: department,
+            pfId: pfId
+        }
+        const updation = await fetch(
+            "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createMentorProfile?secret=vedant",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    // 'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: JSON.stringify(reqBody),
+            }
+        ).then(function (response) {
+            return response.json();
+        })
+            .then(function (data) {
+                return data;
+            })
+            .catch(function (error) {
+                console.log("Request failed", error);
+                result.error = error;
+                return result;
+            });
+        if (updation.status == "Fail") {
+            result.error = updation.error;
+            return result;
+        }
+        else {
+            result.status = "Success";
+            return result;
+        }
+    }
 }
 module.exports = {
     // isAuthentic,
     // isApproved,
     getUserByEmail,
     getUserById,
+    getUserProfileById,
     // getUserProfileByEmail,
     createUser,
     signIn,
     sendEmailVerification,
     checkVerification,
+    completeUserProfile
     // profileCompletion,
 };

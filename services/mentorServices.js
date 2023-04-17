@@ -14,7 +14,73 @@ const unlinkFile = util.promisify(fs.unlink);
 
 const { encrypt, decrypt } = require("../services/encryptionServices");
 
-async function uploadThesis(mentorId, scholarEmail, description, thesis) {
+async function getThesisListById(mentorId) {
+    let result = {
+        status: "Fail",
+        result: null,
+        error: null
+    }
+    if (!mentorId) {
+        result.error = "Mentor Id not provided";
+        return result;
+    }
+    let thesisListResult = await fetch("https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/getThesisListByMentorId?secret=vedant&userId="+mentorId, {
+        method: "GET",
+    }
+    ).then(function (response) {
+        return response.json();
+    }).then(function (data) {
+        // console.log('Request succeeded with JSON response', data);
+        return data;
+    }).catch(function (error) {
+        console.log('Request failed', error);
+        result.error = error;
+    });
+    if (result.error) return result;
+    if (thesisListResult.status == "Fail") {
+        result.error = thesisListResult.error;
+        return result;
+    }
+    result.status = "Success";
+    result.result = thesisListResult.result;
+    return result;
+}
+
+async function getThesisById(thesisId) {
+    let result = {
+        status: "Fail",
+        result: null,
+        error: null
+    }
+    if (!thesisId) {
+        result.error = "Mentor Id not provided";
+        return result;
+    }
+    let thesisResult = await fetch("https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/getThesisById?secret=vedant&thesisId="+thesisId, {
+        method: "GET",
+    }
+    ).then(function (response) {
+        return response.json();
+    }).then(function (data) {
+        // console.log('Request succeeded with JSON response', data);
+        return data;
+    }).catch(function (error) {
+        console.log('Request failed', error);
+        result.error = error;
+    });
+    if (result.error) return result;
+    if (thesisResult.status == "Fail") {
+        result.error = thesisResult.error;
+        return result;
+    }
+    result.status = "Success";
+    result.result = thesisResult.result[0];
+    console.log(result);
+    return result;
+}
+
+
+async function uploadThesis(mentorId, scholarEmail, thesisName, thesis) {
     let result = {
         status: "Success",
         result: null
@@ -44,7 +110,7 @@ async function uploadThesis(mentorId, scholarEmail, description, thesis) {
     await unlinkFile(thesis.path)
     const thesisReqBody = {
         mentorId: mentor._id,
-        description: description,
+        thesisName: thesisName,
         thesisLink: `/users/thesis/${pushResult.Key}`,
         scholarId: scholar._id
     };
@@ -70,10 +136,12 @@ async function uploadThesis(mentorId, scholarEmail, description, thesis) {
     
     // Sending Mail
     let content = mailDataServices.thesisSubmissionContent(mentor.name, description);
-    mailServices.sendMail(scholar.email, content);
+    mailServices.sendMail(scholar.email, content, "Thesis submitted");
     return result;
 }
 
 module.exports = {
+    getThesisById,
+    getThesisListById,
     uploadThesis
 }
