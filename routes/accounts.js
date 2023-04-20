@@ -3,13 +3,8 @@ require('dotenv').config()
 
 const router = express.Router();
 
-const jwt = require('jsonwebtoken');
 
 const accountsServices = require('../services/accountsServices');
-const jwtServices = require('../services/jwtServices');
-const { encrypt, decrypt } = require('../services/encryptionServices');
-const { NetworkFirewall } = require('aws-sdk');
-
 //-----------------------REGISTER----------------------------------------
 router.get('/register', (req, res) => {
     res.render('accounts/register');
@@ -42,9 +37,9 @@ router.get('/sendVerification', (req, res) => {
     res.render('accounts/sendVerificationCode');
 })
 
-router.post('/sendVerification', (req, res) => {
+router.post('/sendVerification', async (req, res) => {
     let { email } = req.body;
-    let sendVerificationResult = accountsServices.sendEmailVerification(email);
+    let sendVerificationResult = await accountsServices.sendEmailVerification(email);
     if (sendVerificationResult.status == "Fail") res.render('accounts/sendVerificationCode', { error: sendVerificationResult.error });
     else res.redirect('/accounts/verification')
 })
@@ -72,48 +67,26 @@ router.post('/verification', async (req, res) => {
 
 //------------------------------SIGN IN------------------------------------------
 router.get('/signIn',async (req, res) => {
-    const cookies = req.cookies;
-    if (!cookies?.jwt_accessToken) {
-        if (!cookies?.jwt_refreshToken) {
-            res.render('accounts/signIn', { title: 'Express', email: '' });
-        }
-        else {
-            let refreshToken = cookies.jwt_refreshToken;
-            let newAccessToken = await jwtServices.refreshAccessTokenByRefreshToken(refreshToken);
-            if (newAccessToken) {
-                res.cookie('jwt_accessToken', newAccessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 });
-                res.redirect('/users/');
-            }
-            else {
-                res.render('accounts/signIn', { title: 'Express', email: '' });
-            }
-        }
-    } else {
-        res.redirect('/users/');
-    }
+    res.render('accounts/signIn', { title: 'Express', email: '' });
     // res.render('accounts/signIn', { title: 'Express', email: '' });
 });
 
 router.post('/signIn', async (req, res) => {
     const { email, password } = req.body;
     try {
-        const result = await accountsServices.signIn(email, password, function (result) {
+        await accountsServices.signIn(email, password, function (result) {
             if (result.status == "Fail") {
                 res.status(200).send("Error: "+result.error);
                 return;
             }
+            if (result.status == "User not verified") {
+                res.redirect('/accounts/sendVerification');
+            }
             if (result.status !== "Success") throw new Error("Unknown error occurred");
             // console.log(result);
-            const { user, refreshToken, accessToken } = result;
-            console.log("signing in: ", user, refreshToken, accessToken);
+            const { user } = result;
+            console.log("signing in: ", user);
             if (user.isEmailVerified) {
-                res.cookie('jwt_refreshToken', refreshToken, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
-                res.cookie('jwt_accessToken', accessToken, { httpOnly: true, maxAge: 15 * 60 * 1000 });
-                // res.header('Authorization', 'Authorization ' + accessToken);
-                // req.header('authorization','Authorization ' + accessToken)
-                // console.log(res);
-                // console.log(res.headersSent);
-                // req.userId = foundUser._id;
                 res.redirect(`/users/`);
             }
             else {

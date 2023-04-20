@@ -2,17 +2,13 @@ const bcrypt = require("bcrypt");
 const Sib = require("sib-api-v3-sdk");
 require("dotenv").config();
 
-const jwtServices = require("../services/jwtServices");
 const mailServices = require("../services/mailServices");
 const mailDataServices = require("../services/mailDataServices");
-
-const fs = require("fs");
-const util = require("util");
 
 /*-------------------Functions----------------------*/
 async function getUserByEmail(email) {
     let user = await fetch(
-        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/getUserByEmail?secret=vedant&userEmail=" +
+        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/p2/getUserByEmail?secret=vedant&userEmail=" +
         email,
         {
             method: "GET",
@@ -35,7 +31,7 @@ async function getUserByEmail(email) {
 
 async function getUserById(id) {
     let user = await fetch(
-        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/getUserById?secret=vedant&userId=" +
+        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/p2/getUserById?secret=vedant&userId=" +
         id,
         {
             method: "GET",
@@ -54,29 +50,6 @@ async function getUserById(id) {
         });
     return user;
 }
-
-async function getUserProfileById(id) {
-    let user = await fetch(
-        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/getUserProfileById?secret=vedant&userId=" +
-        id,
-        {
-            method: "GET",
-        }
-    )
-        .then(function (response) {
-            return response.json();
-        })
-        .then(function (data) {
-            // console.log('Request succeeded with JSON response', data);
-            return data;
-        })
-        .catch(function (error) {
-            console.log("Request failed", error);
-            return { status: "Fail", error: error };
-        });
-    return user;
-}
-
 
 async function createUser(fullName, email, phone, password) {
     try {
@@ -98,7 +71,7 @@ async function createUser(fullName, email, phone, password) {
                     };
                     // console.log(reqBody)
                     await fetch(
-                        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createUser?secret=vedant",
+                        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/p2/createUser?secret=vedant",
                         {
                             method: "POST",
                             headers: {
@@ -145,17 +118,17 @@ function generateVerificationCode() {
     return code;
 }
 
-function sendEmailVerification(email) {
+async function sendEmailVerification(email) {
     let code = generateVerificationCode();
     const reqBody = {
         userEmail: email,
         code: code,
     };
     let content = mailDataServices.verificationMailContent(code);
-    mailServices.sendMail(email, content);
+    mailServices.sendMail(email, content, "Verification Code");
     console.log(email, code);
-    fetch(
-        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createVerification?secret=vedant",
+    let result  =  await fetch(
+        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/p2/createVerification?secret=vedant",
         {
             method: "POST",
             headers: {
@@ -176,6 +149,7 @@ function sendEmailVerification(email) {
             console.log("Request failed", error);
             return { status: "Fail", error: error };
         });
+    return result;
 }
 
 async function checkVerification(email, code) {
@@ -183,25 +157,6 @@ async function checkVerification(email, code) {
         //Checking user
         let findUser = await getUserByEmail(email);
         console.log("User found: ", findUser);
-        // const findUser = await fetch(
-        //     "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/getUserByEmail?secret=vedant&userEmail=" +
-        //     email,
-        //     {
-        //         method: "GET",
-        //     }
-        // )
-        //     .then(function (response) {
-        //         return response.json();
-        //     })
-        //     .then(function (data) {
-        //         console.log("User founded: ", data);
-        //         return data;
-        //     })
-        //     .catch(function (error) {
-        //         console.log("Request failed", error);
-        //         return callback(error);
-        //     });
-        // console.log(findUser)
         if (findUser.status == "Fail") {
             return {
                 status: "Fail",
@@ -212,9 +167,8 @@ async function checkVerification(email, code) {
         const userId = user._id;
 
         //Fetching verification
-        let findVerification;
-        await fetch(
-            "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/getVerificationByUserId?secret=vedant&userId=" +
+        let findVerification = await fetch(
+            "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/p2/getVerificationByUserId?secret=vedant&userId=" +
             userId,
             {
                 method: "GET",
@@ -226,7 +180,7 @@ async function checkVerification(email, code) {
             .then(function (data) {
                 // console.log('Request succeeded with JSON response', data);
                 console.log("verification founded: ", data);
-                findVerification = data;
+                return data;
             })
             .catch(function (error) {
                 console.log("Request failed", error);
@@ -239,11 +193,11 @@ async function checkVerification(email, code) {
         if (verification) {
             const currDate = Date.now();
             if (currDate - verification.createdAt > 600000) {
-                let sendverificationError = sendEmailVerification(email);
+                let sendverificationError = await sendEmailVerification(email);
                 if (sendverificationError)
                     throw new Error(sendverificationError);
                 else {
-                    let sendverificationError = sendEmailVerification(email);
+                    let sendverificationError = await sendEmailVerification(email);
                     if (sendverificationError)
                         throw new Error(sendverificationError);
 
@@ -257,8 +211,8 @@ async function checkVerification(email, code) {
                 const userReqBody = {
                     userEmail: email,
                 };
-                fetch(
-                    "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/updateUserVerificationByUserEmail?secret=vedant",
+                await fetch(
+                    "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/p2/updateUserVerificationByUserEmail?secret=vedant",
                     {
                         method: "POST",
                         headers: {
@@ -284,8 +238,8 @@ async function checkVerification(email, code) {
                     verificationId: verification._id,
                     status: "Successs",
                 };
-                fetch(
-                    "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/updateVerificationsStatusById?secret=vedant",
+                let result = await fetch(
+                    "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/p2/updateVerificationsStatusById?secret=vedant",
                     {
                         method: "POST",
                         headers: {
@@ -309,14 +263,15 @@ async function checkVerification(email, code) {
                         console.log("Request failed", error);
                         throw new Error(error);
                     });
+                return result;
             } else {
                 //updating verification's status to FAILED
                 const verificationReqBody = {
                     verificationId: verification._id,
                     status: "Failed",
                 };
-                fetch(
-                    "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/updateUserVerificationByUserEmail?secret=vedant",
+                await fetch(
+                    "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/p2/updateVerificationsStatusById?secret=vedant",
                     {
                         method: "POST",
                         headers: {
@@ -354,12 +309,6 @@ async function checkVerification(email, code) {
                 status: "Fail",
                 error: "We have sent a new verification code"
             }
-            // sendEmailVerification(email, function (error) {
-            //     if (error) return callback(error);
-            //     else {
-            //         return callback("We have sent a verification Code");
-            //     }
-            // });
         }
     } catch (err) {
         return {
@@ -379,13 +328,16 @@ async function signIn(email, password, callback) {
     console.log(findUser);
     if (findUser.status == "Fail") {
         errResult.error = findUser.error;
-        return errResult;
+        return callback(errResult);
     }
 
     // console.log("User Found: ", findUser);
     const user = findUser.result;
     if (!user.isEmailVerified) {
-        return { user, _, _ };
+        return callback({
+            status: "User not verified",
+            user
+        });
     }
 
     //matching password
@@ -399,192 +351,20 @@ async function signIn(email, password, callback) {
             return errResult;
         } else {
             passMatch = true;
-            //creating tokens
-            const accessToken = jwtServices.createAccessToken(user);
-            const refreshToken = jwtServices.createRefreshToken(user);
-
-            //Adding refresh Token in database
-            const refreshTokenBody = {
-                userId: user._id,
-                refreshToken: refreshToken,
-            };
-            const updation = await fetch(
-                "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createUserRefreshToken?secret=vedant",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        // 'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: JSON.stringify(refreshTokenBody),
-                }
-            ).then(function (response) {
-                return response.json();
-            })
-                .then(function (data) {
-                    return data;
-                })
-                .catch(function (error) {
-                    console.log("Request failed", error);
-                    errResult.error = error;
-                    return errResult;
-                });
-            if (!updation) {
-                errResult.error = "Unable to add tokens";
-                return errResult;
-            }
             const result = {
                 status: "Success",
                 user: user,
-                refreshToken: refreshToken,
-                accessToken: accessToken
             }
-            // console.log("Result: ",result)
             return callback(result);
         }
     });
 }
 
-async function completeUserProfile(userId, name, email, institute, department, role, rollNo, dateOfJoining, pfId) {
-    const userResult = await getUserByEmail(email);
-    let result = {
-        status: "Fail",
-        error: null
-    }
-    if (userResult.status=="Fail") {
-        result.error = userResult.error;
-        return result;
-    }
-    const user = userResult.result;
-    if (userId != user._id||name!==user.name||email!==user.email) {
-        result.error = "Incorrect data";
-        return result;
-    }
-    if (role == "Scholar") {
-        let reqBody = {
-            userId: userId,
-            institute: institute,
-            rollNo: rollNo,
-            department: department,
-            dateOfJoining: dateOfJoining,
-        }
-        const updation = await fetch(
-            "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createScholarProfile?secret=vedant",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    // 'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: JSON.stringify(reqBody),
-            }
-        ).then(function (response) {
-            return response.json();
-        })
-            .then(function (data) {
-                return data;
-            })
-            .catch(function (error) {
-                console.log("Request failed", error);
-                result.error = error;
-                return result;
-            });
-        if (updation.status == "Fail") {
-            result.error = updation.error;
-            return result;
-        }
-        else {
-            result.status = "Success";
-            return result;
-        }
-    }
-    else if (role == "Reviewer") {
-        let reqBody = {
-            userId: userId,
-            institute: institute,
-            department: department,
-            pfId: pfId
-        }
-        const updation = await fetch(
-            "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createReviewerProfile?secret=vedant",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    // 'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: JSON.stringify(reqBody),
-            }
-        ).then(function (response) {
-            return response.json();
-        })
-            .then(function (data) {
-                return data;
-            })
-            .catch(function (error) {
-                console.log("Request failed", error);
-                result.error = error;
-                return result;
-            });
-        if (updation.status == "Fail") {
-            result.error = updation.error;
-            return result;
-        }
-        else {
-            result.status = "Success";
-            return result;
-        }
-    }
-    else{
-        let reqBody = {
-            userId: userId,
-            role: role,
-            institute: institute,
-            department: department,
-            pfId: pfId
-        }
-        const updation = await fetch(
-            "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/createMentorProfile?secret=vedant",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    // 'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: JSON.stringify(reqBody),
-            }
-        ).then(function (response) {
-            return response.json();
-        })
-            .then(function (data) {
-                return data;
-            })
-            .catch(function (error) {
-                console.log("Request failed", error);
-                result.error = error;
-                return result;
-            });
-        if (updation.status == "Fail") {
-            result.error = updation.error;
-            return result;
-        }
-        else {
-            result.status = "Success";
-            return result;
-        }
-    }
-}
 module.exports = {
-    // isAuthentic,
-    // isApproved,
     getUserByEmail,
     getUserById,
-    getUserProfileById,
-    // getUserProfileByEmail,
     createUser,
     signIn,
     sendEmailVerification,
     checkVerification,
-    completeUserProfile
-    // profileCompletion,
 };
