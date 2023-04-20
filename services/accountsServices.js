@@ -194,12 +194,12 @@ async function checkVerification(email, code) {
             const currDate = Date.now();
             if (currDate - verification.createdAt > 600000) {
                 let sendverificationError = await sendEmailVerification(email);
-                if (sendverificationError)
-                    throw new Error(sendverificationError);
+                if (sendverificationError.status ==  "Fail")
+                        throw new Error(sendverificationError.error);
                 else {
                     let sendverificationError = await sendEmailVerification(email);
-                    if (sendverificationError)
-                        throw new Error(sendverificationError);
+                    if (sendverificationError.status ==  "Fail")
+                        throw new Error(sendverificationError.error);
 
                     return {
                         status: "Fail",
@@ -263,6 +263,8 @@ async function checkVerification(email, code) {
                         console.log("Request failed", error);
                         throw new Error(error);
                     });
+                let content = mailDataServices.successfulVerification();
+                mailServices.sendMail(email, content, "Successfull Verification");
                 return result;
             } else {
                 //updating verification's status to FAILED
@@ -270,7 +272,7 @@ async function checkVerification(email, code) {
                     verificationId: verification._id,
                     status: "Failed",
                 };
-                await fetch(
+                let result = await fetch(
                     "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/p2/updateVerificationsStatusById?secret=vedant",
                     {
                         method: "POST",
@@ -284,26 +286,23 @@ async function checkVerification(email, code) {
                     .then(function (response) {
                         return response.json();
                     })
-                    .then(function (data) {
-                        let sendverificationError = sendEmailVerification(email);
-                        if (sendverificationError)
-                            throw new Error(sendverificationError);
-
-                        return {
-                            status: "Fail",
-                            error: "We have sent a new verification code"
-                        }
+                    .then(async function (data) {
+                        return data;
                     })
                     .catch(function (error) {
                         console.log("Request failed", error);
                         throw new Error(error);
                     });
+                console.log(result);
+                    let sendverificationError = await sendEmailVerification(email);
+                    if (sendverificationError.status ==  "Fail")
+                        throw new Error(sendverificationError.error);
                 throw new Error("Incorrect Code");
             }
         } else {
-            let sendverificationError = sendEmailVerification(email);
-            if (sendverificationError)
-                throw new Error(sendverificationError);
+            let sendverificationError = await sendEmailVerification(email);
+            if (sendverificationError.status ==  "Fail")
+                throw new Error(sendverificationError.error);
 
             return {
                 status: "Fail",
