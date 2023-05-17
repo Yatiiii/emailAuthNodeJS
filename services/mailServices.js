@@ -7,7 +7,7 @@ function sendMail(email, htmlContent, subject) {
 
     const tranEmailApi = new Sib.TransactionalEmailsApi();
     const sender = {
-        email: "vedantjain1008@gmail.com",
+        email: "yativishnoi8959@gmail.com",
         name: "Admin",
     };
     const receivers = [
