@@ -7,6 +7,9 @@ const router = express.Router();
 const accountsServices = require('../services/accountsServices');
 //-----------------------REGISTER----------------------------------------
 router.get('/register', (req, res) => {
+    if(req.session.user){
+        res.redirect('/');
+    }
     res.render('accounts/register');
 });
 
@@ -34,6 +37,9 @@ router.post('/register', async (req, res) => {
 
 //-----------------------VERIFICATION---------------------------------------
 router.get('/sendVerification', (req, res) => {
+    if(req.session.user){
+        res.redirect('/');
+    }
     res.render('accounts/sendVerificationCode');
 })
 
@@ -45,6 +51,9 @@ router.post('/sendVerification', async (req, res) => {
 })
 
 router.get('/verification', (req, res) => {
+    if(req.session.user){
+        res.redirect('/');
+    }
     res.render('accounts/verification');
 });
 
@@ -67,6 +76,9 @@ router.post('/verification', async (req, res) => {
 
 //------------------------------SIGN IN------------------------------------------
 router.get('/signIn',async (req, res) => {
+    if(req.session.user){
+        res.redirect('/');
+    }
     res.render('accounts/signIn', { title: 'Express', email: '' });
     // res.render('accounts/signIn', { title: 'Express', email: '' });
 });
@@ -87,7 +99,12 @@ router.post('/signIn', async (req, res) => {
             const { user } = result;
             console.log("signing in: ", user);
             if (user.isEmailVerified) {
-                res.redirect(`/users/`);
+                res.cookie('user_id',user._id);
+                req.session.user = user;
+        //    return res.redirect('/users/profile');
+        // console.log("userid cookie:",user);
+                // res.redirect(`/users/`);
+                res.redirect(`/`);
             }
             else {
                 let result = accountsServices.sendEmailVerification(email);
@@ -101,5 +118,51 @@ router.post('/signIn', async (req, res) => {
     }
 });
 
+// router.get('/logOut', (req, res) => {
+//     try {
+//       const currentUser = accountsServices.getLoggedInUser(req.cookies.sessionId);
+//       res.render('accounts/logOut');
+//     } catch (err) {
+//       if (err.message === 'User not signed in.') {
+//         res.redirect('/accounts/signIn');
+//       }
+//     }
+//   });
+// router.get('/logOut', (req, res) => {
+//     res.clearCookie('req.session.user'); 
+//     res.redirect('/accounts/signIn'); 
+//   });
+//   router.post('/logOut', (req, res) => {
+//     try {
+//       accountsServices.logOut(req.cookies.sessionId);
+//       res.redirect('/');
+//     } catch (err) {
+//       console.error(err);
+//       res.redirect('/accounts/signIn');
+//     }
+//   });
+router.get('/logOut', (req, res) => {
+    if(!req.session.user){
+        res.redirect('/');
+    }
+    try {
+    //   const currentUser =req.cookies.session;
+      res.render('accounts/logOut');
+    } catch (err) {
+      if (err.message === 'User not signed in.') {
+        res.redirect('/accounts/signIn');
+      }
+    }
+  });
+  router.post('/logOut', (req, res) => {
+    try {
+    // accountsServices.logOut(req.cookies.session);
+    req.session.destroy();
+      res.redirect('/');
+    } catch (err) {
+      console.error(err);
+      res.redirect('/accounts/signIn');
+    }
+  });
 
 module.exports = router;

@@ -1,5 +1,6 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const mongoose = require("mongoose")
+const session = require("express-session");
 
 var createError = require('http-errors');
 var express = require('express');
@@ -13,14 +14,17 @@ var fs = require('fs');
 require('dotenv/config');
 require('dotenv').config()
 
+var app = express();
 
 const hbs = require('hbs');
+
+app.use(session({ secret: 'keyboard cat',resave:false,saveUninitialized:false, cookie: { maxAge: 600000 }}));
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var accountsRouter = require('./routes/accounts');
 
-var app = express();
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -34,7 +38,7 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '/public')));
 app.use(function(req, res, next) {
   res.append('Access-Control-Allow-Origin', '*');
   res.append('Access-Control-Allow-Methods', 'GET, POST');
@@ -47,6 +51,17 @@ app.use(function(req, res, next) {
 app.use('/', indexRouter);
 app.use('/accounts', accountsRouter);
 app.use('/users', usersRouter);
+
+
+app.get('/',function(req,res){
+     res.cookie('name','_id',{maxAge:10000});
+     res.send('Cookie set');
+});
+
+app.get('/clear',function(req,res){
+  res.clearCookie('name');
+  res.send('Cookie are clear');
+});
 
 //Database connection
 

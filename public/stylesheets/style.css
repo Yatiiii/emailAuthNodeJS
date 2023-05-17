@@ -1,18 +1,25 @@
 body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  background-image: url("/images/bg.jpg");
+  background-attachment: fixed;
+  background-position: bottom center;
+  background-size: cover;
   margin: 0;
   overflow-y: scroll;
 }
 
 /* ------navigation-bar------- */
 .topnav {
-  background-color: #333;
+  background-color: #f0eeee;
+  color:black;
   overflow: hidden;
+  opacity: 28%;
 }
 
 .topnav a {
+  font-weight: 600;
   float: right;
-  color: #f2f2f2;
+  color: black;
   text-align: center;
   padding: 14px 16px;
   text-decoration: none;
@@ -20,7 +27,7 @@ body {
 }
 
 .topnav a:hover {
-  background-color: #ddd;
+  background-color: white;
   color: black;
 }
 
@@ -179,7 +186,7 @@ input {
 /* ------background----- */
 .accounts_bg {
   display: grid;
-  height: 100vh;
+  height: 92vh;
   width: 100%;
   place-items: center;
   background: linear-gradient(rgba(255, 255, 255, .5), rgba(255, 255, 255, .5)), url('/images/doodle_wallpaper.jpg');
@@ -252,3 +259,8 @@ input {
   visibility: visible;
   opacity: 1;
 }
+/* -------------------------------------------------------------- */
+
+
+
+

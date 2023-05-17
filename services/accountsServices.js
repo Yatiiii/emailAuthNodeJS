@@ -1,3 +1,4 @@
+const  fetch = require('node-fetch');
 const bcrypt = require("bcrypt");
 const Sib = require("sib-api-v3-sdk");
 require("dotenv").config();
@@ -350,6 +351,8 @@ async function signIn(email, password, callback) {
             return errResult;
         } else {
             passMatch = true;
+        //     res.cookie('user_id',user.id);
+        //    return res.redirect('/users/profile');
             const result = {
                 status: "Success",
                 user: user,
@@ -358,12 +361,28 @@ async function signIn(email, password, callback) {
         }
     });
 }
-
+// async function logOut(_id) {
+//     try {
+//       const userId = await SessionModel.findOne({ where: { id: _id } });
+//       if (userId == null) {
+//         throw new UserNotSignedIn();
+//       }
+//       const user = await UserModel.findOne({ where: { id: userId } });
+//       if (!user) {
+//         throw new UserNotSignedIn();
+//       }
+//       await SessionModel.destroy({ where: { id: _id } });
+//     } catch (err) {
+//       console.log(err);
+//       throw (err);
+//     }
+//   }
 module.exports = {
     getUserByEmail,
     getUserById,
     createUser,
     signIn,
+    // logOut,
     sendEmailVerification,
     checkVerification,
 };

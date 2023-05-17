@@ -1,1 +1,191 @@
-<h1> Hello</h1>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Quizzio - Home</title>
+    <link rel="shortcut icon" href="/assets/flaticon.svg" type="image/x-icon" />
+    {{!-- <link href="/stylesheets/quiz_style.css " rel="stylesheet" /> --}}
+    <link href="/stylesheets/modal.css" rel="stylesheet" />
+    <meta http-equiv="cache-control" content="no-cache" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="-1" />
+    <meta name="twitter:card" content="summary" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Quizzio" />
+    <meta property="og:description" content="Quick and simple quiz app" />
+    <meta
+      property="og:image"
+      content="https://image.flaticon.com/icons/png/512/3406/3406808.png"
+    />
+    <meta
+      property="og:url"
+      content="https://vishnu-sagubandi.github.io/Quizzio/"
+    />
+    <meta
+      name="description"
+      content="A Quick and simple quiz web app meant to be fun built using ajax where users can select their like category,difficulty and can play without any need of registration"
+    />
+    <meta
+      name="keywords"
+      content="Quiz, Quizzio, yati,vishnoi,Quizapp,Yati-vishnoi,math quiz,science quiz,Quizzioapp"
+    />
+    <meta name="author" content="Yati Vishnoi" />
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-CTXV92TLR3"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-CTXV92TLR3");
+    </script>
+  </head>
+  <body>
+    {{!-- <div class="container"> --}}
+      <div class="Landing-section">
+        {{!-- <img class="logo" src="/images/front.jpg" alt="Quiz" /> --}}
+        <div class="wlcm-text">
+          <span style="font-size: 2rem; color: rgb(247, 195, 132)"
+            ><strong>Welcome to Quiz-box</strong></span
+          >
+          {{!-- <br />Rate you knowledge here ⭐ --}}
+        </div>
+        <div class="home-btns">
+          <button data-modal-target="#modal" onclick="myFunction()">
+            Start
+          </button>
+          <!-- <button data-modal-target="#highscore_modal">High Score</button> -->
+        </div>
+      </div>
+    {{!-- </div> --}}
+    <div class="modal" id="modal">
+      <div class="modal-header">
+        <div class="title">
+          <span class="title-bold">Quiz API</span><br />Please submit the form
+          below to start your quiz
+        </div>
+        <button data-close-button class="close-button">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form action="quiz.html" method="GET" class="form-api">
+          <label for="category">Select Category: </label>
+          <select
+            name="category"
+            id="category"
+            class="form-control"
+            onchange="myFunction()"
+          >
+            <option value="any">Any Category</option>
+            <option value="9">General Knowledge</option>
+            <option value="10">Entertainment: Books</option>
+            <option value="11">Entertainment: Film</option>
+            <option value="12">Entertainment: Music</option>
+            <option value="13">Entertainment: Musicals &amp; Theatres</option>
+            <option value="14">Entertainment: Television</option>
+            <option value="15">Entertainment: Video Games</option>
+            <option value="16">Entertainment: Board Games</option>
+            <option value="17">Science &amp; Nature</option>
+            <option value="18">Science: Computers</option>
+            <option value="19">Science: Mathematics</option>
+            <option value="20">Mythology</option>
+            <option value="21">Sports</option>
+            <option value="22">Geography</option>
+            <option value="23">History</option>
+            <option value="24">Politics</option>
+            <option value="25">Art</option>
+            <option value="26">Celebrities</option>
+            <option value="27">Animals</option>
+            <option value="28">Vehicles</option>
+            <option value="29">Entertainment: Comics</option>
+            <option value="30">Science: Gadgets</option>
+            <option value="31">
+              Entertainment: Japanese Anime &amp; Manga
+            </option>
+            <option value="32">Entertainment: Cartoon &amp; Animations</option>
+          </select>
+
+          <br />
+
+          <label for="difficulty">Select Difficulty: </label>
+          <select
+            name="difficulty"
+            id="difficulty"
+            class="form-control"
+            onchange="myFunction()"
+          >
+            <option value="any">Any Difficulty</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+
+          <br />
+
+          <label for="amount">Number of Questions:</label>
+          <input
+            type="number"
+            name="amount"
+            id="amount"
+            class="form-control"
+            min="1"
+            max="15"
+            value="5"
+          />
+
+          <br />
+
+          <input type="hidden" id="type" name="type" value="any" />
+          <input type="submit" value="Submit" />
+        </form>
+      </div>
+    </div>
+    <div id="overlay"></div>
+    <script src="/js/main.js"></script>
+    <script>
+      function myFunction() {
+        var cat_value = document.getElementById("category").value;
+        var difficulty = document.getElementById("difficulty").value;
+        var amount_select = document.getElementById("amount");
+        if (difficulty == "easy") {
+          if (cat_value == 13) {
+            amount_select.setAttribute("max", "8");
+          } else if (cat_value == 19) {
+            amount_select.setAttribute("max", "14");
+          } else if (cat_value == 25) {
+            amount_select.setAttribute("max", "9");
+          } else if (cat_value == 26) {
+            amount_select.setAttribute("max", "13");
+          } else if (cat_value == 29) {
+            amount_select.setAttribute("max", "12");
+          } else if (cat_value == 30) {
+            amount_select.setAttribute("max", "9");
+          } else {
+            amount_select.setAttribute("max", "15");
+          }
+        } else if (difficulty == "medium") {
+          if (cat_value == 13) {
+            amount_select.setAttribute("max", "13");
+          } else if (cat_value == 25) {
+            amount_select.setAttribute("max", "11");
+          } else if (cat_value == 30) {
+            amount_select.setAttribute("max", "10");
+          } else {
+            amount_select.setAttribute("max", "15");
+          }
+        } else if (difficulty == "hard") {
+          amount_select.setAttribute("max", "5");
+        } else {
+          amount_select.setAttribute("max", "15");
+          amount_select.value = 5;
+        }
+      }
+    </script>
+  </body>
+</html>

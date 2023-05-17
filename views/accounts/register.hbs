@@ -3,7 +3,16 @@
     <div class="error">
       {{error}}
     </div>
+    {{!-- {{#if FriendStatus.IsFriend}}
+  <div class="ui-state-default ui-corner-all" title=".ui-icon-mail-closed"><span class="ui-icon ui-icon-mail-closed"></span></div>
+{{else if FriendStatus.FriendRequested}}
+  <div class="ui-state-default ui-corner-all" title=".ui-icon-check"><span class="ui-icon ui-icon-check"></span></div>
+{{else}}
+  <div class="ui-state-default ui-corner-all" title=".ui-icon-plusthick"><span class="ui-icon ui-icon-plusthick"></span></div>
+{{/if}} --}}
+
     <form action="/accounts/register" method="post">
+    
       <div class="title">Registration</div>
       <div class="input-box">
         <input type="text" name="fullName" placeholder="Full Name" required />
