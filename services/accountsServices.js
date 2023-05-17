@@ -129,7 +129,7 @@ async function sendEmailVerification(email) {
     mailServices.sendMail(email, content, "Verification Code");
     console.log(email, code);
     let result  =  await fetch(
-        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/p2/createVerification?secret=vedant",
+        "https://ap-south-1.aws.data.mongodb-api.com/app/pr3003-migmt/endpoint/p2/createVerification?secret=t",
         {
             method: "POST",
             headers: {
